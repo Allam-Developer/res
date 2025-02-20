@@ -1,10 +1,9 @@
-import os
-import re
-import threading
-import time
+from os import startfile
+from re import search
+from threading import Thread
+from time import sleep
 import tkinter as tk
-import webbrowser
-import requests
+from requests import session
 
 # Global Variables
 if True:
@@ -19,6 +18,8 @@ if True:
     highlight_color = "red"
 
     file_text = ""
+
+    current_session = session()
 
 # highlight all letters in the scroll text
 def highlight_all(word):
@@ -105,13 +106,13 @@ def generate_text():
     progress_label.config(text=f"done saved as\n {file_name}")
     with open(file_name, "w", encoding="utf-8") as file:
         file.write(file_text)
-    os.startfile(file_name)
-    time.sleep(5)
+    startfile(file_name)
+    sleep(5)
     progress_label.destroy()
 
 # save all pages of the current search as a txt file
 def save_as_txt():
-    saving_file_thread = threading.Thread(target=generate_text)
+    saving_file_thread = Thread(target=generate_text)
     saving_file_thread.start()
 
 # every time a button released when the text field is in focus
@@ -140,7 +141,7 @@ def read_page(letters, page, search_type=0,all_or_common=0): # search_type = con
     all_or_common = all_or_common_options[all_or_common]
     url = f"https://www.merriam-webster.com/wordfinder/classic/{search_type}/{all_or_common}/-1/{letters}/{page}"
     current_url = url
-    response = requests.session().get(url)
+    response = current_session.get(url)
     html_lines = response.text.splitlines()
     words = []
     first_word = 0
@@ -149,7 +150,7 @@ def read_page(letters, page, search_type=0,all_or_common=0): # search_type = con
         if '<a href="/dictionary/' in line:
             if first_word == 0:
                 first_word = html_lines.index(line)
-            match = re.search(r'>([^<]+)<', line)
+            match = search(r'>([^<]+)<', line)
             words.append(match.group(1))
             last_word = html_lines.index(line)
     if page != 1:
@@ -159,15 +160,15 @@ def read_page(letters, page, search_type=0,all_or_common=0): # search_type = con
         del html_lines[first_word:last_word]
 
     try:
-        match = re.search(r'of\s+(\d+)', html_lines[546])
+        match = search(r'of\s+(\d+)', html_lines[546])
         last_page = int(match.group(1))
     except Exception:
         last_page = 1
     current_max_pages = last_page
 
     try:
-        match = re.search(r'title="([\d,]+)"', html_lines[532])
-        match2 = re.search(r'title="([\d,]+)"', html_lines[536])
+        match = search(r'title="([\d,]+)"', html_lines[532])
+        match2 = search(r'title="([\d,]+)"', html_lines[536])
         match_words = match.group(1)
         common_words = match2.group(1)
     except Exception:
@@ -188,6 +189,7 @@ def read_next_page():
 
 # open the link of the original website that data is taken from
 def show_original_page():
+    import webbrowser
     webbrowser.open(current_url)
 
 # when search type dropdown is changed
