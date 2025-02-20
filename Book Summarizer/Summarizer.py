@@ -1,4 +1,4 @@
-# pip install openai , generativeai , python-docx , pyttsx3 , moviepy , PyPDF2
+# pip install openai generativeai python-docx pyttsx3 moviepy PyPDF2
 # add your api keys in line 260 & 261
 import openai
 from openai import OpenAI
